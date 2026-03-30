@@ -1,0 +1,253 @@
+# =========================
+# Python
+# =========================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# =========================
+# IDE
+# =========================
+# VS Code
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse
+.project
+.pydevproject
+.settings/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+@eaDir/
+
+# =========================
+# Project Specific
+# =========================
+# Data files ( crawled data )
+Data_crawler/crawl_data/
+Data_crawler/data/
+Data_crawler/temp/
+*.jsonl
+*.json
+
+# Log files
+Data_crawler/crawl_log/
+*.log
+logs/
+
+# Exported files
+exports/
+*.docx
+*.pdf
+*.xlsx
+
+# Session state
+.streamlit/
+
+# Environment variables
+.env.local
+.env.*.local
+
+# API keys and secrets
+config_local.py
+secrets.py
+credentials.json
+service_account_key.json
+
+# Database files
+*.sqlite
+*.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Backup files
+*.backup
+*.old
+
+# =========================
+# Sensitive Information
+# =========================
+# Passwords and tokens
+passwords.txt
+tokens.json
+.api_key
+.secret_key
+
+# Personal data
+personal_*.txt
+private_*.json
+
+# =========================
+# Documentation Build
+# =========================
+docs/_build/
+site/
+*.md.html
+
+# =========================
+# Notes
+# =========================
+# Keep the following in version control:
+# - requirements.txt (dependencies)
+# - README.md and other documentation
+# - Source code (*.py files except config with secrets)
+# - start.bat (startup script)
+# - test scripts
+
+# Do NOT commit:
+# - Large data files (>10MB)
+# - API keys or credentials
+# - Personal configuration
+# - Build artifacts
