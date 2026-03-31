@@ -1028,9 +1028,20 @@ with tab1:
                                 )
                             else:
                                 st.write(it.get("summary", ""))
-                            with st.expander("View Original Text", expanded=False):
+                            
+                            # 修复：将嵌套的 expander 改为按钮控制的可折叠区域
+                            btn_key = f"view_raw_{it.get('id', idx)}"
+                            if st.button("📄 View Original Text", key=btn_key, type="secondary"):
                                 raw_txt = it.get("raw_text", "")
-                                st.write(raw_txt if raw_txt else "No original text available")
+                                if raw_txt:
+                                    # 使用容器显示原文，避免嵌套 expander
+                                    with st.container(border=True):
+                                        st.markdown("**Original Text:**")
+                                        with st.popover("Hide/Show"):
+                                            st.text(raw_txt)
+                                else:
+                                    st.info("No original text available")
+                            
                             st.markdown("---")
         st.markdown('</div>', unsafe_allow_html=True)
 
