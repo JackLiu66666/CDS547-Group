@@ -106,7 +106,8 @@ def extract_secondary_keywords(text: str, is_english: bool = True) -> list:
         response = client.chat.completions.create(
             model="deepseek-chat",
             messages=[{"role": "user", "content": f"{prompt}\n\nText: {text}"}],
-            temperature=0.1
+            temperature=0.1,
+            timeout=30
         )
         keywords = [k.strip() for k in response.choices[0].message.content.split(",")]
         return [k for k in keywords if k]
