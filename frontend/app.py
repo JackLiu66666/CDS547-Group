@@ -478,7 +478,7 @@ def generate_summary(
 # -------------------------- 新增：调用后端关键词提取接口 --------------------------
 def get_filter_keywords(news_text: str, max_keywords: int = 8, is_english: bool = True) -> List[str]:
     """
-    调用后端 /api/extract-filter-keywords 接口提取二次筛选用关键词（匹配你已改的后端）
+    调用后端 /api/secondary_keywords 接口提取二次筛选用关键词（匹配你已改的后端）
     :param news_text: 待分析的新闻文本
     :param max_keywords: 最大关键词数量
     :param is_english: 是否为英文文本（匹配后端llm_adapter.py逻辑）
@@ -486,10 +486,9 @@ def get_filter_keywords(news_text: str, max_keywords: int = 8, is_english: bool 
     """
     try:
         resp = requests.post(
-            f"{API_BASE_URL}/extract-filter-keywords",
+            f"{API_BASE_URL}/secondary_keywords",
             json={
-                "news_text": news_text,
-                "max_keywords": max_keywords,
+                "text": news_text,
                 "is_english": is_english
             },
             timeout=10
