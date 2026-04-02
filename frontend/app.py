@@ -491,7 +491,7 @@ def get_filter_keywords(news_text: str, max_keywords: int = 8, is_english: bool 
                 "text": news_text,
                 "is_english": is_english
             },
-            timeout=10
+            timeout=30
         )
         if resp.status_code == 200:
             return resp.json().get("keywords", [])
