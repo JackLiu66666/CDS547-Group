@@ -18,6 +18,7 @@ import shutil
 from main import run_pipeline, parse_args
 from storage import ArticleStorage
 from llm_adapter import process_data_for_llm
+from llm_adapter import extract_secondary_keywords
 from models import Article
 from crawlers import (
     ZhihuCrawler, SinaNewsCrawler, WechatCrawler, 
@@ -346,6 +347,15 @@ def generate_summary():
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# ===================== 新增：二次筛选关键词API =====================
+@app.route("/api/secondary_keywords", methods=["POST"])
+def get_secondary_keywords():
+    data = request.json
+    text = data.get("text", "")
+    is_english = data.get("is_english", True)
+    keywords = extract_secondary_keywords(text, is_english)
+    return jsonify({"keywords": keywords})
 
 
 if __name__ == '__main__':

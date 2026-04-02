@@ -12,6 +12,11 @@ from docx import Document
 from xhtml2pdf import pisa
 import plotly.express as px
 import requests  # Added for API calls
+API_URL = "http://localhost:5000/api"
+
+def get_secondary_keywords(text, is_english=True):
+    res = requests.post(f"{API_URL}/secondary_keywords", json={"text": text, "is_english": is_english})
+    return res.json().get("keywords", [])
 
 # =========================
 # Page Basic Configuration
@@ -164,6 +169,11 @@ def init_session_state() -> None:
         st.session_state.expanded_all = False
     if "editing_id" not in st.session_state:
         st.session_state.editing_id: str | None = None
+     # -------------------------- 新增：关键词筛选状态 --------------------------
+    if "filter_keywords_select" not in st.session_state:
+        st.session_state.filter_keywords_select: List[str] = []  # 选中的筛选关键词
+    if "extracted_keywords" not in st.session_state:
+        st.session_state.extracted_keywords: List[str] = []  # 从后端提取的关键词
 
 
 init_session_state()
@@ -441,6 +451,14 @@ def generate_summary(
         
         if resp.status_code == 200:
             result = resp.json()
+            # ===================== 新增：调用后端提取精准关键词 =====================
+            # 拼接所有新闻文本用于关键词提取
+            all_news_text = "\n".join([item.get("content", "") for item in processed_data])
+            # 调用你已改的后端关键词接口（默认英文，中文可改is_english=False）
+            precise_keywords = get_filter_keywords(all_news_text, max_keywords=10, is_english=True)
+            # 替换原有粗糙keywords为精准关键词
+            result["keywords"] = precise_keywords if precise_keywords else interest_tags
+            # =====================================================================
             return {
                 "overall_summary": result.get("overall_summary", ""),
                 "item_summaries": result.get("item_summaries", []),
@@ -456,6 +474,35 @@ def generate_summary(
     except Exception as e:
         st.warning(f"API 调用失败：{str(e)}，使用本地模拟摘要")
         return generate_summary_local(processed_data, interest_tags, granularity)
+
+# -------------------------- 新增：调用后端关键词提取接口 --------------------------
+def get_filter_keywords(news_text: str, max_keywords: int = 8, is_english: bool = True) -> List[str]:
+    """
+    调用后端 /api/secondary_keywords 接口提取二次筛选用关键词（匹配你已改的后端）
+    :param news_text: 待分析的新闻文本
+    :param max_keywords: 最大关键词数量
+    :param is_english: 是否为英文文本（匹配后端llm_adapter.py逻辑）
+    :return: 核心关键词列表
+    """
+    try:
+        resp = requests.post(
+            f"{API_BASE_URL}/secondary_keywords",
+            json={
+                "text": news_text,
+                "is_english": is_english
+            },
+            timeout=30
+        )
+        if resp.status_code == 200:
+            return resp.json().get("keywords", [])
+        else:
+            st.warning(f"关键词提取API返回错误：{resp.status_code}")
+            return []
+    except Exception as e:
+        st.warning(f"调用关键词提取API失败：{str(e)}，使用降级方案")
+        # 本地降级：从文本中提取英文长单词（兼容原有逻辑）
+        simple_keywords = re.findall(r'\b[A-Za-z]{3,}\b', news_text[:500])
+        return list(set(simple_keywords))[:max_keywords]
 
 
 def generate_summary_local(
@@ -499,10 +546,16 @@ def generate_summary_local(
 
     elapsed = round(time.perf_counter() - t0 + random.uniform(0.3, 0.9), 2)
     accuracy_score = round(min(0.99, 0.82 + 0.02 * len(interest_tags)), 2)
-    keywords = interest_tags[:]
-    for extra in ["Trends", "Methodology", "Actionable Suggestions"]:
-        if extra not in keywords:
-            keywords.append(extra)
+    # -------------------------- 改动：调用关键词提取函数 --------------------------
+    # 合并所有文本用于关键词提取
+    merged_text = "\n".join([item.get("content", "") for item in processed_data])
+    # 调用get_filter_keywords（兼容后端失效场景）
+    keywords = get_filter_keywords(merged_text, max_keywords=10, is_english=True)
+    # 补充interest_tags确保关联性
+    for tag in interest_tags:
+        if tag not in keywords:
+            keywords.append(tag)
+    # ===========================================================================
 
     return {
         "overall_summary": overall_summary,
@@ -975,6 +1028,33 @@ with tab1:
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.divider()
+        # ===================== 新增：二次关键词筛选UI =====================
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        with st.container():
+            st.subheader("🔍 Secondary Filter Keywords (English Optimized)")
+            filter_keywords = summary.get("keywords", [])
+            if filter_keywords:
+                # 多选框：用户选择要筛选的关键词
+                selected_filter_keywords = st.multiselect(
+                    "Select core keywords to filter content",
+                    options=filter_keywords,
+                    default=filter_keywords[:5],  # 默认选中前5个
+                    key="filter_keywords_select"
+                )
+                
+                # 根据选中的关键词筛选item_summaries
+                if selected_filter_keywords:
+                    filtered_items = [
+                        item for item in item_summaries
+                        if any(kw.lower() in item.get("raw_text", "").lower() for kw in selected_filter_keywords)
+                    ]
+                    item_summaries = filtered_items
+                    st.success(f"Filtered: {len(filtered_items)} articles matched (total: {len(summary.get('item_summaries', []))})")
+            else:
+                st.info("No precise keywords extracted, using original tags.")
+        st.markdown('</div>', unsafe_allow_html=True)
+        st.divider()
+        # =====================================================================
 
         # 2) Aggregated Overall Summary 修正后的卡片写法
         st.markdown('<div class="card">', unsafe_allow_html=True)
