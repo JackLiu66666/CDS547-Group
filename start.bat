@@ -36,7 +36,7 @@ timeout /t 5 /nobreak >nul
 echo.
 echo [4/4] 启动前端界面...
 echo      - 前端地址：http://localhost:8501
-start "LLM Frontend" cmd /k "cd frontend && streamlit run app.py --server.port 8501"
+start "LLM Frontend" cmd /k "cd llm_info_aggregator && streamlit run app.py --server.port 8501"
 
 echo.
 echo ============================================================

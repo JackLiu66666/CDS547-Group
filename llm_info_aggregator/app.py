@@ -41,8 +41,8 @@ def run():
         st.divider()
         st.subheader("国内 LLM API 配置")
         api_key = st.text_input("API Key", type="password", help="推荐使用环境变量或临时输入，避免写入代码")
-        base_url = st.text_input("Base URL", value="https://ark.cn-beijing.volces.com/api/v3")
-        model = st.text_input("Model", value="doubao-seed-2-0-lite-260215")
+        base_url = st.text_input("Base URL", value="https://api.deepseek.com")
+        model = st.text_input("Model", value="deepseek-chat")
 
     if "items" not in st.session_state:
         st.session_state["items"] = []
