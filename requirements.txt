@@ -6,6 +6,8 @@ lxml>=4.9.0
 # API Server Dependencies
 flask>=3.0.0
 flask-cors>=4.0.0
+openai>=1.0.0
+python-dotenv>=1.0.0
 
 # Frontend Dependencies (Streamlit)
 streamlit>=1.30.0
