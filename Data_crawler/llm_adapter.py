@@ -72,7 +72,12 @@ from dotenv import load_dotenv
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 apikey_env_path = os.path.join(project_root, 'apikey.env')
 load_dotenv(dotenv_path=apikey_env_path)
-client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# 使用 DeepSeek API 替代 OpenAI API
+client = openai.OpenAI(
+    api_key=os.getenv("DEEPSEEK_API_KEY"),
+    base_url="https://api.deepseek.com/v1"
+)
 
 def extract_secondary_keywords(text: str, is_english: bool = True) -> list:
     """
@@ -99,7 +104,7 @@ def extract_secondary_keywords(text: str, is_english: bool = True) -> list:
 
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="deepseek-chat",
             messages=[{"role": "user", "content": f"{prompt}\n\nText: {text}"}],
             temperature=0.1
         )
