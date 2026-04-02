@@ -68,8 +68,10 @@ import os
 import openai
 from dotenv import load_dotenv
 
-# 加载密钥
-load_dotenv()
+# 加载项目根目录下的 apikey.env 文件
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+apikey_env_path = os.path.join(project_root, 'apikey.env')
+load_dotenv(dotenv_path=apikey_env_path)
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def extract_secondary_keywords(text: str, is_english: bool = True) -> list:
