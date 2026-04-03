@@ -1,48 +1,48 @@
-# LLM 辅助跨平台信息聚合与个性化摘要工具
+# LLM-Assisted Cross-Platform Information Aggregation and Personalized Summarization Tool
 
-**CDS547 大语言模型导论课程项目**
+**CDS547 Introduction to Large Language Models Course Project**
 
-一个智能的多源信息聚合系统，支持跨平台内容抓取、个性化摘要生成和多格式导出。
-
----
-
-## 🌟 核心功能
-
-- **跨平台聚合**：支持 Google News、Bing News、arXiv、Hacker News、GitHub、Wikipedia、StackOverflow 等多源信息
-- **智能处理**：自动清洗、去重、标签分类
-- **个性化摘要**：基于用户兴趣标签和粒度偏好生成定制摘要
-- **多格式导出**：支持 Word、PDF 格式一键下载
-- **性能统计**：爬取成功率、摘要准确率可视化展示
+An intelligent multi-source information aggregation system supporting cross-platform content retrieval, personalized summary generation, and multi-format export.
 
 ---
 
-## 🚀 快速开始
+## 🌟 Core Features
 
-### 一键启动（推荐）
+- **Cross-Platform Aggregation**: Supports multiple sources including Google News, Bing News, arXiv, Hacker News, GitHub, Wikipedia, StackOverflow, and more
+- **Intelligent Processing**: Automatic cleaning, deduplication, and tag classification
+- **Personalized Summaries**: Generates customized summaries based on user interest tags and granularity preferences
+- **Multi-Format Export**: One-click download in Word and PDF formats
+- **Performance Statistics**: Visualized display of crawling success rate and summary accuracy
 
-**Windows 用户：**
+---
+
+## 🚀 Quick Start
+
+### One-Click Launch (Recommended)
+
+**Windows Users:**
 ```bash
-# 双击运行
+# Double-click to run
 start.bat
 ```
 
-或命令行：
+Or via command line:
 ```bash
 .\start.bat
 ```
 
-访问：**http://localhost:8501**
+Access: **http://localhost:8501**
 
 ---
 
-### 手动安装运行
+### Manual Installation and Running
 
-#### 1. 安装依赖
+#### 1. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-#### 2. 启动应用
+#### 2. Start Application
 ```bash
 cd llm_info_aggregator
 streamlit run app.py --server.port 8501
@@ -50,108 +50,108 @@ streamlit run app.py --server.port 8501
 
 ---
 
-## 💻 使用指南
+## 💻 User Guide
 
-### 三步生成摘要
+### Three Steps to Generate Summaries
 
-#### 1️⃣ 配置参数
-在左侧边栏设置：
-- **搜索关键词**：如 "人工智能"、"考研经验"
-- **信息源选择**：Google News RSS、Bing News RSS、arXiv、Hacker News、GitHub Repos、Wikipedia、StackOverflow（建议至少 3 类）
-- **每源抓取数量**：10-60 条
-- **摘要长度**：200-1200 字
+#### 1️⃣ Configure Parameters
+Set parameters in the left sidebar:
+- **Search Keywords**: e.g., "artificial intelligence", "graduate exam preparation"
+- **Source Selection**: Google News RSS, Bing News RSS, arXiv, Hacker News, GitHub Repos, Wikipedia, StackOverflow (recommend at least 3 sources)
+- **Items per Source**: 10-60 items
+- **Summary Length**: 200-1200 characters
 
-#### 2️⃣ 兴趣标签管理
-- **预设标签**：AI 研究、考研备考、职场技能等
-- **自定义标签**：支持新增、编辑、删除
-- **示例标签**：`人工智能`, `时间管理`, `数据分析`
+#### 2️⃣ Interest Tag Management
+- **Preset Tags**: AI Research, Graduate Exam Prep, Career Skills, etc.
+- **Custom Tags**: Support adding, editing, and deleting
+- **Example Tags**: `Artificial Intelligence`, `Time Management`, `Data Analysis`
 
-#### 3️⃣ 开始生成
-点击「开始聚合与摘要」按钮
+#### 3️⃣ Start Generation
+Click the "Start Aggregation and Summarization" button
 
-系统将自动执行：
-1. **抓取** → 从各平台获取内容（约 30-60 秒）
-2. **清洗** → 去重、标准化、标签分类
-3. **摘要** → 按标签生成个性化摘要
-
----
-
-### 查看和导出结果
-
-#### 结果预览
-- **左侧**：聚合内容列表（标题、来源、标签、链接）
-- **右侧**：按标签分类的个性化摘要
-
-#### 导出报告
-点击底部「下载 Word/PDF 报告」按钮即可保存完整结果。
+The system will automatically execute:
+1. **Crawl** → Retrieve content from various platforms (approximately 30-60 seconds)
+2. **Clean** → Deduplication, standardization, tag classification
+3. **Summarize** → Generate personalized summaries by tag
 
 ---
 
-## 🎯 典型应用场景
+### View and Export Results
 
-### AI 研究动态追踪
-- **关键词**：`LLM RAG Agent`
-- **信息源**：arXiv + Hacker News + GitHub
-- **标签**：人工智能
+#### Result Preview
+- **Left**: Aggregated content list (title, source, tags, links)
+- **Right**: Personalized summaries classified by tags
 
-### 考研备考资料整理
-- **关键词**：`graduate exam math english`
-- **信息源**：Google News + Wikipedia + arXiv
-- **标签**：考研
-
-### 职场技能提升
-- **关键词**：`project management communication analytics`
-- **信息源**：Google News + Bing News + StackOverflow
-- **标签**：职场技能
+#### Export Report
+Click the "Download Word/PDF Report" button at the bottom to save the complete results.
 
 ---
 
-## 🔧 高级功能
+## 🎯 Typical Application Scenarios
 
-### 国内 LLM API 配置（可选）
+### AI Research Tracking
+- **Keywords**: `LLM RAG Agent`
+- **Sources**: arXiv + Hacker News + GitHub
+- **Tags**: Artificial Intelligence
 
-如需更高质量的摘要，可在侧边栏配置：
-- **API Key**：你的密钥
-- **Base URL**：如 `https://api.deepseek.com/v1`
-- **Model**：如 `deepseek-chat`
+### Graduate Exam Preparation Materials
+- **Keywords**: `graduate exam math english`
+- **Sources**: Google News + Wikipedia + arXiv
+- **Tags**: Graduate Exam
 
-**未配置时**：系统自动使用本地摘要算法，确保演示稳定。
-
----
-
-### 标签管理
-
-**新增标签：**
-1. 在侧边栏输入新标签名
-2. 点击「新增标签」
-
-**编辑标签：**
-1. 选择要编辑的标签
-2. 输入新名称
-3. 点击「编辑标签」
-
-**删除标签：**
-点击对应标签旁的「删除」按钮。
+### Career Skill Development
+- **Keywords**: `project management communication analytics`
+- **Sources**: Google News + Bing News + StackOverflow
+- **Tags**: Career Skills
 
 ---
 
-## 📊 系统架构
+## 🔧 Advanced Features
+
+### Domestic LLM API Configuration (Optional)
+
+For higher quality summaries, configure in the sidebar:
+- **API Key**: Your secret key
+- **Base URL**: e.g., `https://api.deepseek.com/v1`
+- **Model**: e.g., `deepseek-chat`
+
+**When not configured**: The system automatically uses local summarization algorithms to ensure stable demonstration.
+
+---
+
+### Tag Management
+
+**Add Tag:**
+1. Enter new tag name in the sidebar
+2. Click "Add Tag"
+
+**Edit Tag:**
+1. Select the tag to edit
+2. Enter new name
+3. Click "Edit Tag"
+
+**Delete Tag:**
+Click the "Delete" button next to the corresponding tag.
+
+---
+
+## 📊 System Architecture
 
 ```
 llm_info_aggregator/
-├── app.py              # Streamlit 主界面
-├── crawler.py          # 跨平台爬虫
-├── llm_core.py         # LLM 摘要生成
-├── utils.py            # 数据处理工具
+├── app.py              # Streamlit main interface
+├── crawler.py          # Cross-platform crawler
+├── llm_core.py         # LLM summary generation
+├── utils.py            # Data processing utilities
 └── src/
-    ├── crawlers/       # 具体爬虫实现
-    ├── processing/     # 清洗、标签分类
-    ├── exporters/      # 导出功能
-    └── utils/          # 工具函数
+    ├── crawlers/       # Specific crawler implementations
+    ├── processing/     # Cleaning, tag classification
+    ├── exporters/      # Export functionality
+    └── utils/          # Utility functions
 ```
 
 ---
 
-## 👥 开发团队
+## 👥 Development Team
 
 **CDS547 Intro to Large Language Models - Group Project**
