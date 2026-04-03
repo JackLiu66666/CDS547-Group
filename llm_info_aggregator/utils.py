@@ -1,10 +1,25 @@
 import json
 import re
+import hashlib
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
 from urllib.parse import unquote
+
+# 修复 reportlab 的 MD5 usedforsecurity 参数问题
+# 在某些 Python 版本中，hashlib.md5() 不支持 usedforsecurity 参数
+try:
+    # 测试是否支持 usedforsecurity 参数
+    hashlib.md5(usedforsecurity=False)
+except TypeError:
+    # 如果不支持，使用猴子补丁修补 md5 函数
+    _original_md5 = hashlib.md5
+    def _patched_md5(*args, **kwargs):
+        # 移除 usedforsecurity 参数
+        kwargs.pop('usedforsecurity', None)
+        return _original_md5(*args, **kwargs)
+    hashlib.md5 = _patched_md5
 
 import pandas as pd
 from docx import Document

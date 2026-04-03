@@ -19,7 +19,7 @@ plotly>=5.18.0
 
 # Export Functions
 python-docx>=1.1.0
-reportlab>=4.0.0
+reportlab>=4.2.0
 PyPDF2>=3.0.1
 Pillow>=10.0.0
 
