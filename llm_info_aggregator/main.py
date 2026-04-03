@@ -1,5 +1,5 @@
 """
-项目启动入口（满足答辩时“单文件命令启动”展示）。
+Project startup entry (for "single-file command startup" demonstration during defense).
 """
 import os
 

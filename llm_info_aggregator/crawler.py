@@ -11,8 +11,8 @@ from utils import deduplicate_items, normalize_text
 
 class CrossPlatformCrawler:
     """
-    跨平台抓取器。
-    支持知乎、公众号、新闻、学术摘要，并返回每个信息源的抓取统计。
+    Cross-platform crawler.
+    Supports Zhihu, WeChat Official Accounts, news, academic summaries, and returns crawl statistics for each information source.
     """
 
     def __init__(self, timeout: int = 10):
@@ -71,7 +71,7 @@ class CrossPlatformCrawler:
                 {
                     "title": normalize_text(node.title.get_text(strip=True) if node.title else ""),
                     "content": normalize_text(node.description.get_text(strip=True) if node.description else ""),
-                    "source_type": "综合新闻",
+                    "source_type": "General News",
                     "source_name": "GoogleNewsRSS",
                     "publish_time": node.pubDate.get_text(strip=True) if node.pubDate else "",
                     "url": node.link.get_text(strip=True) if node.link else "",
@@ -92,7 +92,7 @@ class CrossPlatformCrawler:
                 {
                     "title": normalize_text(node.title.get_text(strip=True) if node.title else ""),
                     "content": normalize_text(node.description.get_text(strip=True) if node.description else ""),
-                    "source_type": "综合新闻",
+                    "source_type": "General News",
                     "source_name": "BingNewsRSS",
                     "publish_time": node.pubDate.get_text(strip=True) if node.pubDate else "",
                     "url": node.link.get_text(strip=True) if node.link else "",
@@ -116,7 +116,7 @@ class CrossPlatformCrawler:
                 {
                     "title": normalize_text(node.title.get_text(strip=True) if node.title else ""),
                     "content": normalize_text(node.summary.get_text(strip=True) if node.summary else ""),
-                    "source_type": "学术摘要",
+                    "source_type": "Academic Summary",
                     "source_name": "arXiv",
                     "publish_time": node.published.get_text(strip=True) if node.published else "",
                     "url": node.id.get_text(strip=True) if node.id else "",
@@ -144,7 +144,7 @@ class CrossPlatformCrawler:
                 {
                     "title": title,
                     "content": content,
-                    "source_type": "技术社区",
+                    "source_type": "Technical Community",
                     "source_name": "HackerNews",
                     "publish_time": hit.get("created_at", ""),
                     "url": url_value,
@@ -168,7 +168,7 @@ class CrossPlatformCrawler:
                 {
                     "title": normalize_text(repo.get("full_name", "")),
                     "content": normalize_text(repo.get("description", "")),
-                    "source_type": "开源项目",
+                    "source_type": "Open Source Project",
                     "source_name": "GitHub",
                     "publish_time": repo.get("updated_at", ""),
                     "url": repo.get("html_url", ""),
@@ -199,7 +199,7 @@ class CrossPlatformCrawler:
                 {
                     "title": normalize_text(title),
                     "content": normalize_text(item.get("snippet", "")),
-                    "source_type": "百科知识",
+                    "source_type": "Encyclopedia Knowledge",
                     "source_name": "Wikipedia",
                     "publish_time": datetime.now().strftime("%Y-%m-%d"),
                     "url": f"https://en.wikipedia.org/wiki/{title.replace(' ', '_')}",
@@ -229,7 +229,7 @@ class CrossPlatformCrawler:
                 {
                     "title": normalize_text(q.get("title", "")),
                     "content": normalize_text(" ".join(q.get("tags", []))),
-                    "source_type": "技术问答",
+                    "source_type": "Technical Q&A",
                     "source_name": "StackOverflow",
                     "publish_time": datetime.fromtimestamp(q.get("last_activity_date", 0)).strftime("%Y-%m-%d")
                     if q.get("last_activity_date")

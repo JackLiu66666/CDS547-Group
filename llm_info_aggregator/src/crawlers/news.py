@@ -23,7 +23,7 @@ class NewsCrawler(BaseCrawler):
             for node in items:
                 result.append(
                     Article(
-                        source_type="新闻",
+                        source_type="News",
                         source_name="GoogleNewsRSS",
                         title=(node.title.text if node.title else "").strip(),
                         url=(node.link.text if node.link else "").strip(),

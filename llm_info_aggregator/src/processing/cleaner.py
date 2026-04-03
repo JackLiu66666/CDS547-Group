@@ -36,7 +36,7 @@ def classify_by_tags(articles: List[Article], tags: List[str]) -> List[Article]:
         for tag in tags:
             if tag.lower() in lowered:
                 matched.append(tag)
-        item.tags = matched if matched else ["未分类"]
+        item.tags = matched if matched else ["Uncategorized"]
         item.score = min(1.0, 0.3 + len(matched) * 0.2)
     return articles
 

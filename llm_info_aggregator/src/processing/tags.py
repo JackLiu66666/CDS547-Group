@@ -10,15 +10,15 @@ class TagManager:
         self.tag_file = tag_file
         self.tag_file.parent.mkdir(parents=True, exist_ok=True)
         if not self.tag_file.exists():
-            self.save_tags(["人工智能", "考研", "职场技能"])
+            self.save_tags(["Artificial Intelligence", "Graduate Exam", "Professional Skills"])
 
     def load_tags(self) -> List[str]:
         try:
             with self.tag_file.open("r", encoding="utf-8") as f:
                 tags = json.load(f)
-            return sorted(list(set([t.strip() for t in tags if t.strip()])))
+            return sorted(list(set([t.strip() for t in tags if t.strip()])))  
         except Exception:
-            return ["人工智能", "考研", "职场技能"]
+            return ["Artificial Intelligence", "Graduate Exam", "Professional Skills"]
 
     def save_tags(self, tags: List[str]) -> None:
         clean_tags = sorted(list(set([t.strip() for t in tags if t.strip()])))

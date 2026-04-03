@@ -20,36 +20,36 @@ from utils import (
 
 
 def run():
-    st.set_page_config(page_title="LLM信息聚合摘要工具", layout="wide")
-    st.title("LLM 辅助跨平台信息聚合与个性化摘要工具")
-    st.caption("两阶段流程：先检索+LLM预分析标签，再按标签二次精准筛选")
+    st.set_page_config(page_title="LLM Information Aggregation and Summary Tool", layout="wide")
+    st.title("LLM-Assisted Cross-Platform Information Aggregation and Personalized Summary Tool")
+    st.caption("Two-stage process: first retrieve + LLM pre-analysis tags, then perform secondary precise filtering by tags")
     ensure_dataset(600)
 
     with st.sidebar:
-        st.header("搜索与参数")
-        keyword = st.text_input("自由搜索关键词", value="人工智能")
+        st.header("Search and Parameters")
+        keyword = st.text_input("Free search keyword", value="Artificial Intelligence")
         sources = st.multiselect(
-            "选择信息源（建议至少3类）",
+            "Select information sources (recommend at least 3 types)",
             options=["Google News RSS", "Bing News RSS", "arXiv", "Hacker News", "GitHub Repos", "Wikipedia", "StackOverflow"],
             default=["Google News RSS", "Bing News RSS", "arXiv"],
         )
-        max_items = st.slider("每源抓取上限", 10, 60, 25, 5)
-        summary_len = st.slider("摘要长度", 200, 1200, 500, 50)
-        use_sample = st.toggle("拼接内置样本（仅演示）", False)
-        use_llm_semantic_filter = st.toggle("启用LLM语义筛选（消耗Token）", True)
+        max_items = st.slider("Per-source crawl limit", 10, 60, 25, 5)
+        summary_len = st.slider("Summary length", 200, 1200, 500, 50)
+        use_sample = st.toggle("Include built-in samples (demo only)", False)
+        use_llm_semantic_filter = st.toggle("Enable LLM semantic filtering (consumes tokens)", True)
 
         st.divider()
-        st.subheader("国内 LLM API 配置")
-        api_key = st.text_input("API Key", type="password", help="推荐使用环境变量或临时输入，避免写入代码")
+        st.subheader("Domestic LLM API Configuration")
+        api_key = st.text_input("API Key", type="password", help="Recommended to use environment variables or temporary input, avoid writing to code")
         base_url = st.text_input(
             "Base URL", 
             value="https://api.deepseek.com", 
-            help="DeepSeek: https://api.deepseek.com (不要带/v1) | SiliconFlow: https://api.siliconflow.cn/v1 | 豆包：https://ark.cn-beijing.volces.com/api/v3"
+            help="DeepSeek: https://api.deepseek.com (without /v1) | SiliconFlow: https://api.siliconflow.cn/v1 | Doubao: https://ark.cn-beijing.volces.com/api/v3"
         )
         model = st.text_input(
             "Model", 
             value="deepseek-chat", 
-            help="DeepSeek: deepseek-chat | SiliconFlow: Qwen/Qwen2.5-72B-Instruct | 豆包：doubao-seed-2-0-lite-260215"
+            help="DeepSeek: deepseek-chat | SiliconFlow: Qwen/Qwen2.5-72B-Instruct | Doubao: doubao-seed-2-0-lite-260215"
         )
 
     if "items" not in st.session_state:
@@ -67,11 +67,11 @@ def run():
     if "last_llm_debug_info" not in st.session_state:
         st.session_state["last_llm_debug_info"] = []
 
-    if st.button("1) 检索并执行 LLM 预分析", type="primary"):
+    if st.button("1) Retrieve and perform LLM pre-analysis", type="primary"):
         if len(sources) < 3:
-            st.info("建议至少选择 3 类信息源，可获得更稳定、全面的结果。")
+            st.info("It is recommended to select at least 3 types of information sources for more stable and comprehensive results.")
 
-        with st.spinner("检索并进行 LLM 预分析中..."):
+        with st.spinner("Retrieving and performing LLM pre-analysis..."):
             crawler = CrossPlatformCrawler(timeout=10)
             crawled, stats = crawler.crawl(keyword=keyword, selected_sources=sources, max_items=max_items)
             samples = load_dataset(limit=180) if use_sample else []
@@ -82,7 +82,7 @@ def run():
             llm = DomesticLLM(api_key=api_key, base_url=base_url, model=model)
             pre = llm.pre_analyze_results(filtered, keyword=keyword, summary_len=summary_len, top_k_tags=12)
             
-            # 保存 LLM 调试信息到 session_state
+            # Save LLM debug info to session_state
             st.session_state["last_llm_debug_info"] = llm.debug_info if hasattr(llm, 'debug_info') else []
 
             st.session_state["items"] = filtered
@@ -93,25 +93,25 @@ def run():
             st.session_state["summaries"] = {}
             save_json(filtered, "latest_results.json")
         st.success(
-            f"预分析完成：共 {len(st.session_state['items'])} 条信息，推荐标签 {len(st.session_state['recommended_tags'])} 个。"
+            f"Pre-analysis completed: {len(st.session_state['items'])} items in total, {len(st.session_state['recommended_tags'])} recommended tags."
         )
 
     if st.session_state["items"]:
-        st.subheader("LLM 预分析结果")
+        st.subheader("LLM Pre-analysis Results")
         
-        # 显示预分析摘要
+        # Display pre-analysis summary
         if st.session_state["pre_overview"]:
-            st.success("✅ 预分析完成")
+            st.success("✅ Pre-analysis completed")
             st.write(st.session_state["pre_overview"])
         else:
-            st.info("暂无预分析摘要。")
+            st.info("No pre-analysis summary available.")
         
-        # 显示调试信息（带警告色）
-        with st.expander("🔍 查看 LLM 调用详情", expanded=False):
+        # Display debug information (with warning colors)
+        with st.expander("🔍 View LLM call details", expanded=False):
             debug_info = st.session_state.get("last_llm_debug_info", [])
             if debug_info:
                 for log in debug_info:
-                    # 根据日志类型使用不同的颜色
+                    # Use different colors based on log type
                     if "❌" in log or "⚠️" in log:
                         st.error(log)
                     elif "✅" in log:
@@ -119,28 +119,28 @@ def run():
                     else:
                         st.code(log)
                 
-                # 如果有 Content Exists Risk 错误，显示专门的处理建议
+                # If there's a Content Exists Risk error, display specific handling suggestions
                 if any("Content Exists Risk" in log for log in debug_info):
                     st.warning("""
-                    **⚠️ 检测到内容安全风险**
+                    **⚠️ Content security risk detected**
                     
-                    这通常是因为搜索关键词或抓取内容触发了 AI 服务的安全过滤机制。
+                    This is usually because the search keyword or crawled content triggered the AI service's security filtering mechanism.
                     
-                    **处理建议：**
-                    1. 更换一个更中性、学术性的搜索关键词
-                    2. 检查抓取的内容是否包含广告、违规信息
-                    3. 尝试降低 API 调用的温度参数（temperature）
-                    4. 如仍无法解决，可暂时关闭 LLM 功能，使用本地回退算法
+                    **Handling suggestions:**
+                    1. Use a more neutral, academic search keyword
+                    2. Check if crawled content contains advertisements or prohibited information
+                    3. Try reducing the temperature parameter in API calls
+                    4. If the issue persists, temporarily disable LLM functionality and use local fallback algorithms
                     """)
             else:
-                st.info("暂无调试信息")
+                st.info("No debug information available")
         
         selected_keywords = st.multiselect(
-            "请选择 LLM 推荐兴趣标签（用于二次精准筛选）",
+            "Select LLM-recommended interest tags (for secondary precise filtering)",
             options=st.session_state["recommended_tags"],
             default=[],
         )
-        if st.button("2) 按所选兴趣标签执行二次精准筛选"):
+        if st.button("2) Perform secondary precise filtering by selected interest tags"):
             local_filtered = filter_items_by_selected_keywords(
                 st.session_state["items"], selected_keywords
             )
@@ -159,63 +159,63 @@ def run():
             llm = DomesticLLM(api_key=api_key, base_url=base_url, model=model)
             st.session_state["summaries"] = llm.summarize_by_interest(
                 st.session_state["display_items"],
-                selected_keywords if selected_keywords else ["搜索词总结"],
+                selected_keywords if selected_keywords else ["Search Term Summary"],
                 keyword,
                 summary_len=summary_len,
                 use_interest_tags=bool(selected_keywords),
             )
-            st.success(f"二次筛选完成：剩余 {len(st.session_state['display_items'])} 条。")
+            st.success(f"Secondary filtering completed: {len(st.session_state['display_items'])} items remaining.")
     else:
         selected_keywords = []
 
     left, right = st.columns([2, 1])
     with left:
-        st.subheader("聚合结果")
+        st.subheader("Aggregation Results")
         df = to_dataframe(enrich_items_for_display(st.session_state["display_items"]))
         if not df.empty:
             show_cols = ["title", "source_type", "source_name", "publish_time", "interest_tags", "display_url"]
             st.dataframe(df[show_cols], use_container_width=True)
         else:
-            st.info("当前筛选条件下暂无结果，可减少关键词筛选或重新搜索。")
+            st.info("No results under current filtering conditions. Try reducing keyword filtering or re-searching.")
 
     with right:
-        st.subheader("二次筛选后摘要")
+        st.subheader("Summaries after Secondary Filtering")
         if st.session_state["summaries"]:
             for tag, text in st.session_state["summaries"].items():
                 st.markdown(f"**{tag}**")
                 st.write(text)
         else:
-            st.info("请先完成二次筛选后再查看摘要。")
+            st.info("Please complete secondary filtering before viewing summaries.")
 
     st.divider()
-    st.subheader("性能统计")
+    st.subheader("Performance Statistics")
     stats = st.session_state["stats"]
     success_rate = crawl_success_rate(stats)
     merged_summary = "\n".join(st.session_state["summaries"].values()) if st.session_state["summaries"] else ""
     acc = summary_accuracy_estimate(st.session_state["display_items"], merged_summary)
     c1, c2 = st.columns(2)
-    c1.metric("爬取成功率", f"{success_rate * 100:.1f}%")
-    c2.metric("摘要准确率(估算)", f"{acc * 100:.1f}%")
+    c1.metric("Crawl Success Rate", f"{success_rate * 100:.1f}%")
+    c2.metric("Summary Accuracy (Estimated)", f"{acc * 100:.1f}%")
     if stats:
         st.json(stats)
 
     st.divider()
-    st.subheader("导出报告")
+    st.subheader("Export Report")
     if st.session_state["display_items"]:
         word_path = export_word(st.session_state["display_items"], st.session_state["summaries"], "report.docx")
         pdf_path = export_pdf(st.session_state["display_items"], st.session_state["summaries"], "report.pdf")
         with open(word_path, "rb") as f:
-            st.download_button("下载 Word", f, file_name="report.docx")
+            st.download_button("Download Word", f, file_name="report.docx")
         with open(pdf_path, "rb") as f:
-            st.download_button("下载 PDF", f, file_name="report.pdf")
+            st.download_button("Download PDF", f, file_name="report.pdf")
 
     st.divider()
-    st.subheader("三大标准场景 + 自由搜索")
+    st.subheader("Three Standard Scenarios + Free Search")
     st.markdown(
-        "- AI研究动态：关键词 `LLM RAG Agent`（来源建议：arXiv + Hacker News + GitHub）\n"
-        "- 考研备考：关键词 `graduate exam math english`（来源建议：Google News + Wikipedia + arXiv）\n"
-        "- 职场技能提升：关键词 `project management communication analytics`\n"
-        "- 用户自由搜索：任意关键词，系统先生成推荐标签，再二次筛选。"
+        "- AI Research Trends: Keywords `LLM RAG Agent` (Recommended sources: arXiv + Hacker News + GitHub)\n"
+        "- Graduate Exam Preparation: Keywords `graduate exam math english` (Recommended sources: Google News + Wikipedia + arXiv)\n"
+        "- Professional Skills Improvement: Keywords `project management communication analytics`\n"
+        "- Free User Search: Any keywords, the system first generates recommended tags, then performs secondary filtering."
     )
 
 

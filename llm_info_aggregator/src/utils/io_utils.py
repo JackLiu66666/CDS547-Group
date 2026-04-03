@@ -24,7 +24,7 @@ def load_sample_dataset(path: Path) -> List[Article]:
             obj = json.loads(line)
             records.append(
                 Article(
-                    source_type=obj.get("source_type", "样本"),
+                    source_type=obj.get("source_type", "Sample"),
                     source_name=obj.get("source_name", "builtin"),
                     title=obj.get("title", ""),
                     url=obj.get("url", ""),

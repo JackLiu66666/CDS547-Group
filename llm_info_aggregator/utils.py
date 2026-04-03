@@ -7,16 +7,16 @@ from pathlib import Path
 from typing import Dict, List
 from urllib.parse import unquote
 
-# 修复 reportlab 的 MD5 usedforsecurity 参数问题
-# 在某些 Python 版本中，hashlib.md5() 不支持 usedforsecurity 参数
+# Fix reportlab MD5 usedforsecurity parameter issue
+# In some Python versions, hashlib.md5() doesn't support the usedforsecurity parameter
 try:
-    # 测试是否支持 usedforsecurity 参数
+    # Test if usedforsecurity parameter is supported
     hashlib.md5(usedforsecurity=False)
 except TypeError:
-    # 如果不支持，使用猴子补丁修补 md5 函数
+    # If not supported, monkey patch the md5 function
     _original_md5 = hashlib.md5
     def _patched_md5(*args, **kwargs):
-        # 移除 usedforsecurity 参数
+        # Remove usedforsecurity parameter
         kwargs.pop('usedforsecurity', None)
         return _original_md5(*args, **kwargs)
     hashlib.md5 = _patched_md5
@@ -38,7 +38,7 @@ SAMPLE_FILE = DATA_DIR / "sample_dataset.jsonl"
 def normalize_text(text: str) -> str:
     text = re.sub(r"<[^>]+>", " ", text or "")
     text = re.sub(r"\s+", " ", text).strip()
-    ad_keywords = ["广告", "推广", "点击领取", "扫码咨询", "赞助内容"]
+    ad_keywords = ["Advertisement", "Promotion", "Click to receive", "Scan to consult", "Sponsored content"]
     for kw in ad_keywords:
         text = text.replace(kw, "")
     return text.strip()
@@ -75,20 +75,20 @@ def deduplicate_items(items: List[Dict]) -> List[Dict]:
 
 def annotate_interest_tags(items: List[Dict], tags: List[str], user_interest: str) -> List[Dict]:
     """
-    仅做兴趣标签标注，不影响搜索结果保留。
+    Only annotate interest tags, do not affect search result retention.
     """
     packed = tags + ([user_interest] if user_interest.strip() else [])
     packed = [x.strip() for x in packed if x.strip()]
     for item in items:
         text = f"{item.get('title', '')} {item.get('content', '')}".lower()
         matched = [tag for tag in packed if tag.lower() in text]
-        item["interest_tags"] = matched if matched else ["未命中兴趣标签"]
+        item["interest_tags"] = matched if matched else ["No interest tags matched"]
     return items
 
 
 def filter_by_search_keyword(items: List[Dict], keyword: str) -> List[Dict]:
     """
-    仅按用户搜索词进行相关性筛选与排序，避免兴趣标签干扰搜索目标。
+    Only filter and sort by user search keyword for relevance, avoiding interest tags interfering with search goals.
     """
     terms = extract_query_terms(keyword)
     if not terms:
@@ -136,7 +136,7 @@ def filter_by_search_keyword(items: List[Dict], keyword: str) -> List[Dict]:
 
 def filter_items_by_selected_keywords(items: List[Dict], selected_keywords: List[str]) -> List[Dict]:
     """
-    用户根据推荐关键词做二次精准筛选。
+    User performs secondary precise filtering based on recommended keywords.
     """
     picks = [k.strip().lower() for k in selected_keywords if k.strip()]
     if not picks:
@@ -160,13 +160,13 @@ class TagManager:
         self.file_path = file_path
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
         if not self.file_path.exists():
-            self.save(["人工智能", "考研", "职场技能"])
+            self.save(["Artificial Intelligence", "Graduate Exam", "Professional Skills"])
 
     def load(self) -> List[str]:
         try:
             return json.loads(self.file_path.read_text(encoding="utf-8"))
         except Exception:
-            return ["人工智能", "考研", "职场技能"]
+            return ["Artificial Intelligence", "Graduate Exam", "Professional Skills"]
 
     def save(self, tags: List[str]) -> None:
         clean = sorted(list(set([x.strip() for x in tags if x.strip()])))
@@ -198,20 +198,20 @@ def ensure_dataset(size: int = 600) -> Path:
             return SAMPLE_FILE
 
     topics = [
-        ("人工智能", "大模型", "知乎"),
-        ("人工智能", "智能体", "学术摘要"),
-        ("考研", "数学", "新闻"),
-        ("考研", "英语", "公众号"),
-        ("职场技能", "项目管理", "知乎"),
-        ("职场技能", "数据分析", "新闻"),
+        ("Artificial Intelligence", "Large Model", "Zhihu"),
+        ("Artificial Intelligence", "Agent", "Academic Summary"),
+        ("Graduate Exam", "Mathematics", "News"),
+        ("Graduate Exam", "English", "WeChat Official Account"),
+        ("Professional Skills", "Project Management", "Zhihu"),
+        ("Professional Skills", "Data Analysis", "News"),
     ]
     with SAMPLE_FILE.open("w", encoding="utf-8") as f:
         for i in range(size):
             tag, topic, source = topics[i % len(topics)]
             row = {
                 "id": i + 1,
-                "title": f"{tag}-{topic}信息第{i + 1}条",
-                "content": f"这是一条关于{tag}和{topic}的演示数据，包含方法、案例、风险和执行建议。",
+                "title": f"{tag}-{topic} Information #{i + 1}",
+                "content": f"This is a demonstration data about {tag} and {topic}, including methods, cases, risks, and execution suggestions.",
                 "source_type": source,
                 "source_name": "builtin",
                 "publish_time": "2026-04-01",
@@ -295,19 +295,19 @@ def export_word(items: List[Dict], summaries: Dict[str, str], filename: str = "r
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     path = OUTPUT_DIR / filename
     doc = Document()
-    doc.add_heading("跨平台信息聚合与个性化摘要报告", level=1)
-    doc.add_heading("个性化摘要", level=2)
+    doc.add_heading("Cross-Platform Information Aggregation and Personalized Summary Report", level=1)
+    doc.add_heading("Personalized Summary", level=2)
     for tag, text in summaries.items():
         doc.add_heading(tag, level=3)
         doc.add_paragraph(text)
-    doc.add_heading("聚合结果", level=2)
+    doc.add_heading("Aggregation Results", level=2)
     for idx, item in enumerate(items, start=1):
         doc.add_heading(f"{idx}. {item.get('title', '')}", level=3)
-        doc.add_paragraph(f"来源: {item.get('source_type', '')} / {item.get('source_name', '')}")
-        doc.add_paragraph(f"时间: {item.get('publish_time', '')}")
-        doc.add_paragraph(f"链接: {item.get('url', '')}")
+        doc.add_paragraph(f"Source: {item.get('source_type', '')} / {item.get('source_name', '')}")
+        doc.add_paragraph(f"Time: {item.get('publish_time', '')}")
+        doc.add_paragraph(f"Link: {item.get('url', '')}")
         tags = item.get("interest_tags", item.get("tags", []))
-        doc.add_paragraph(f"标签: {', '.join(tags)}")
+        doc.add_paragraph(f"Tags: {', '.join(tags)}")
         doc.add_paragraph(item.get("content", "")[:500])
     doc.save(path)
     return path
@@ -331,20 +331,20 @@ def export_pdf(items: List[Dict], summaries: Dict[str, str], filename: str = "re
         c.drawString(35, y, (line or "")[:60])
         y -= 16
 
-    write("跨平台信息聚合与个性化摘要报告")
-    write("个性化摘要")
+    write("Cross-Platform Information Aggregation and Personalized Summary Report")
+    write("Personalized Summary")
     for tag, text in summaries.items():
-        write(f"标签: {tag}")
-        for part in text.replace("\n", " ").split("。"):
+        write(f"Tag: {tag}")
+        for part in text.replace("\n", " ").split("."):
             if part.strip():
-                write(part.strip() + "。")
-    write("聚合结果")
+                write(part.strip() + ".")
+    write("Aggregation Results")
     for idx, item in enumerate(items[:120], start=1):
         write(f"{idx}. {item.get('title', '')}")
-        write(f"来源: {item.get('source_type', '')} / {item.get('source_name', '')}")
+        write(f"Source: {item.get('source_type', '')} / {item.get('source_name', '')}")
         tags = item.get("interest_tags", item.get("tags", []))
         if tags:
-            write(f"标签: {', '.join(tags)}")
+            write(f"Tags: {', '.join(tags)}")
         write(item.get("content", "")[:100])
     c.save()
     return path

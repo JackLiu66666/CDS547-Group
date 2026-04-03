@@ -18,15 +18,15 @@ def ensure_sample_dataset(path: Path, target_size: int = 600) -> Path:
             pass
 
     topics = [
-        ("人工智能", "大模型训练", "学术论文", "arXiv"),
-        ("人工智能", "Agent系统", "知乎", "Zhihu"),
-        ("人工智能", "多模态推理", "新闻", "GoogleNewsRSS"),
-        ("考研", "数学复习", "知乎", "Zhihu"),
-        ("考研", "英语阅读", "新闻", "EducationNews"),
-        ("考研", "政治时政", "公众号", "考研订阅号"),
-        ("职场技能", "项目管理", "新闻", "BusinessNews"),
-        ("职场技能", "数据分析", "知乎", "Zhihu"),
-        ("职场技能", "沟通协作", "公众号", "职场进阶"),
+        ("Artificial Intelligence", "Large Model Training", "Academic Paper", "arXiv"),
+        ("Artificial Intelligence", "Agent Systems", "Zhihu", "Zhihu"),
+        ("Artificial Intelligence", "Multimodal Reasoning", "News", "GoogleNewsRSS"),
+        ("Graduate Exam", "Mathematics Review", "Zhihu", "Zhihu"),
+        ("Graduate Exam", "English Reading", "News", "EducationNews"),
+        ("Graduate Exam", "Political Current Affairs", "WeChat Official Account", "Graduate Exam Subscription"),
+        ("Professional Skills", "Project Management", "News", "BusinessNews"),
+        ("Professional Skills", "Data Analysis", "Zhihu", "Zhihu"),
+        ("Professional Skills", "Communication and Collaboration", "WeChat Official Account", "Career Advancement"),
     ]
 
     with path.open("w", encoding="utf-8") as f:
@@ -36,11 +36,11 @@ def ensure_sample_dataset(path: Path, target_size: int = 600) -> Path:
                 "id": idx + 1,
                 "source_type": source_type,
                 "source_name": source_name,
-                "title": f"{tag}-{subtopic}-实用信息第{idx+1}条",
+                "title": f"{tag}-{subtopic}-Useful Information #{idx+1}",
                 "url": f"https://example.com/{tag}/{idx+1}",
                 "content": (
-                    f"这是关于{tag}与{subtopic}的样本内容，用于离线演示信息聚合、分类与摘要流程。"
-                    "内容包含方法、案例、常见误区和执行建议。"
+                    f"This is sample content about {tag} and {subtopic}, used for offline demonstration of information aggregation, classification, and summarization processes."
+                    "Content includes methods, cases, common pitfalls, and execution suggestions."
                 ),
                 "publish_time": "2026-03-31",
                 "tags": [tag],

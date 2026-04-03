@@ -37,8 +37,8 @@ class WechatCrawler(BaseCrawler):
                     continue
                 result.append(
                     Article(
-                        source_type="公众号",
-                        source_name=(source_node.get_text(strip=True) if source_node else "微信公众平台"),
+                        source_type="WeChat Official Account",
+                        source_name=(source_node.get_text(strip=True) if source_node else "WeChat Official Platform"),
                         title=title_node.get_text(" ", strip=True),
                         url=title_node.get("href", ""),
                         content=content_node.get_text(" ", strip=True) if content_node else "",

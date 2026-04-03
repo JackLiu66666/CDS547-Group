@@ -26,10 +26,10 @@ class ArxivCrawler(BaseCrawler):
                 authors = [n.text.strip() for n in entry.find_all("name")]
                 content = (entry.summary.text if entry.summary else "").strip()
                 if authors:
-                    content = f"作者: {', '.join(authors)}\n{content}"
+                    content = f"Authors: {', '.join(authors)}\n{content}"
                 result.append(
                     Article(
-                        source_type="学术论文",
+                        source_type="Academic Paper",
                         source_name="arXiv",
                         title=(entry.title.text if entry.title else "").strip().replace("\n", " "),
                         url=(entry.id.text if entry.id else "").strip(),

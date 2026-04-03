@@ -13,19 +13,19 @@ from src.models import Article
 def export_word(output_path: Path, articles: List[Article], summaries: Dict[str, str]) -> Path:
     """Export aggregation + summaries to Word document."""
     doc = Document()
-    doc.add_heading("LLM辅助跨平台信息聚合报告", level=1)
+    doc.add_heading("LLM-Assisted Cross-Platform Information Aggregation Report", level=1)
 
-    doc.add_heading("一、个性化摘要", level=2)
+    doc.add_heading("1. Personalized Summary", level=2)
     for tag, text in summaries.items():
-        doc.add_heading(f"标签: {tag}", level=3)
+        doc.add_heading(f"Tag: {tag}", level=3)
         doc.add_paragraph(text)
 
-    doc.add_heading("二、聚合内容", level=2)
+    doc.add_heading("2. Aggregated Content", level=2)
     for idx, item in enumerate(articles, start=1):
         doc.add_heading(f"{idx}. {item.title}", level=3)
-        doc.add_paragraph(f"来源: {item.source_type}/{item.source_name}")
-        doc.add_paragraph(f"链接: {item.url}")
-        doc.add_paragraph(f"标签: {', '.join(item.tags)}")
+        doc.add_paragraph(f"Source: {item.source_type}/{item.source_name}")
+        doc.add_paragraph(f"Link: {item.url}")
+        doc.add_paragraph(f"Tags: {', '.join(item.tags)}")
         doc.add_paragraph(item.content[:500])
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -51,19 +51,19 @@ def export_pdf(output_path: Path, articles: List[Article], summaries: Dict[str, 
         c.drawString(40, y, line[:58])
         y -= 18
 
-    write_line("LLM辅助跨平台信息聚合报告")
-    write_line("一、个性化摘要")
+    write_line("LLM-Assisted Cross-Platform Information Aggregation Report")
+    write_line("1. Personalized Summary")
     for tag, text in summaries.items():
-        write_line(f"标签: {tag}")
-        for part in text.replace("\n", " ").split("。"):
+        write_line(f"Tag: {tag}")
+        for part in text.replace("\n", " ").split("."):
             if part.strip():
-                write_line(part.strip() + "。")
+                write_line(part.strip() + ".")
 
-    write_line("二、聚合内容")
+    write_line("2. Aggregated Content")
     for idx, item in enumerate(articles[:120], start=1):
         write_line(f"{idx}. {item.title}")
-        write_line(f"来源: {item.source_type}/{item.source_name}")
-        write_line(f"标签: {', '.join(item.tags)}")
+        write_line(f"Source: {item.source_type}/{item.source_name}")
+        write_line(f"Tags: {', '.join(item.tags)}")
         write_line(item.content[:120])
 
     c.save()

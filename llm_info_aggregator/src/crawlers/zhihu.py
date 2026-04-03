@@ -38,9 +38,9 @@ class ZhihuCrawler(BaseCrawler):
                 title = BeautifulSoup(obj.get("title", ""), "html.parser").get_text(" ", strip=True)
                 content = BeautifulSoup(obj.get("excerpt", ""), "html.parser").get_text(" ", strip=True)
                 article = Article(
-                    source_type="知乎",
+                    source_type="Zhihu",
                     source_name="Zhihu",
-                    title=title or "知乎内容",
+                    title=title or "Zhihu Content",
                     url=obj.get("url", ""),
                     content=content,
                 )
