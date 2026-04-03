@@ -41,8 +41,16 @@ def run():
         st.divider()
         st.subheader("国内 LLM API 配置")
         api_key = st.text_input("API Key", type="password", help="推荐使用环境变量或临时输入，避免写入代码")
-        base_url = st.text_input("Base URL", value="https://api.deepseek.com")
-        model = st.text_input("Model", value="deepseek-chat")
+        base_url = st.text_input(
+            "Base URL", 
+            value="https://api.deepseek.com", 
+            help="DeepSeek: https://api.deepseek.com (不要带/v1) | SiliconFlow: https://api.siliconflow.cn/v1 | 豆包：https://ark.cn-beijing.volces.com/api/v3"
+        )
+        model = st.text_input(
+            "Model", 
+            value="deepseek-chat", 
+            help="DeepSeek: deepseek-chat | SiliconFlow: Qwen/Qwen2.5-72B-Instruct | 豆包：doubao-seed-2-0-lite-260215"
+        )
 
     if "items" not in st.session_state:
         st.session_state["items"] = []
@@ -56,12 +64,14 @@ def run():
         st.session_state["summaries"] = {}
     if "stats" not in st.session_state:
         st.session_state["stats"] = {}
+    if "last_llm_debug_info" not in st.session_state:
+        st.session_state["last_llm_debug_info"] = []
 
-    if st.button("1) 检索并执行LLM预分析", type="primary"):
+    if st.button("1) 检索并执行 LLM 预分析", type="primary"):
         if len(sources) < 3:
-            st.info("建议至少选择3类信息源，可获得更稳定、全面的结果。")
+            st.info("建议至少选择 3 类信息源，可获得更稳定、全面的结果。")
 
-        with st.spinner("检索并进行LLM预分析中..."):
+        with st.spinner("检索并进行 LLM 预分析中..."):
             crawler = CrossPlatformCrawler(timeout=10)
             crawled, stats = crawler.crawl(keyword=keyword, selected_sources=sources, max_items=max_items)
             samples = load_dataset(limit=180) if use_sample else []
@@ -71,6 +81,9 @@ def run():
 
             llm = DomesticLLM(api_key=api_key, base_url=base_url, model=model)
             pre = llm.pre_analyze_results(filtered, keyword=keyword, summary_len=summary_len, top_k_tags=12)
+            
+            # 保存 LLM 调试信息到 session_state
+            st.session_state["last_llm_debug_info"] = llm.debug_info if hasattr(llm, 'debug_info') else []
 
             st.session_state["items"] = filtered
             st.session_state["display_items"] = filtered
@@ -84,10 +97,46 @@ def run():
         )
 
     if st.session_state["items"]:
-        st.subheader("LLM预分析结果")
-        st.write(st.session_state["pre_overview"] or "暂无预分析摘要。")
+        st.subheader("LLM 预分析结果")
+        
+        # 显示预分析摘要
+        if st.session_state["pre_overview"]:
+            st.success("✅ 预分析完成")
+            st.write(st.session_state["pre_overview"])
+        else:
+            st.info("暂无预分析摘要。")
+        
+        # 显示调试信息（带警告色）
+        with st.expander("🔍 查看 LLM 调用详情", expanded=False):
+            debug_info = st.session_state.get("last_llm_debug_info", [])
+            if debug_info:
+                for log in debug_info:
+                    # 根据日志类型使用不同的颜色
+                    if "❌" in log or "⚠️" in log:
+                        st.error(log)
+                    elif "✅" in log:
+                        st.success(log)
+                    else:
+                        st.code(log)
+                
+                # 如果有 Content Exists Risk 错误，显示专门的处理建议
+                if any("Content Exists Risk" in log for log in debug_info):
+                    st.warning("""
+                    **⚠️ 检测到内容安全风险**
+                    
+                    这通常是因为搜索关键词或抓取内容触发了 AI 服务的安全过滤机制。
+                    
+                    **处理建议：**
+                    1. 更换一个更中性、学术性的搜索关键词
+                    2. 检查抓取的内容是否包含广告、违规信息
+                    3. 尝试降低 API 调用的温度参数（temperature）
+                    4. 如仍无法解决，可暂时关闭 LLM 功能，使用本地回退算法
+                    """)
+            else:
+                st.info("暂无调试信息")
+        
         selected_keywords = st.multiselect(
-            "请选择LLM推荐兴趣标签（用于二次精准筛选）",
+            "请选择 LLM 推荐兴趣标签（用于二次精准筛选）",
             options=st.session_state["recommended_tags"],
             default=[],
         )

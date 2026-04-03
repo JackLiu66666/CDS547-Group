@@ -9,26 +9,44 @@ class DomesticLLM:
     """
     国内 OpenAI 兼容接口适配器。
     示例可用 base_url:
-    - https://api.deepseek.com/v1
+    - https://api.deepseek.com (注意：不要带/v1)
     - https://api.siliconflow.cn/v1
+    - https://ark.cn-beijing.volces.com/api/v3
     """
 
     def __init__(self, api_key: str, base_url: str, model: str):
         self.api_key = api_key.strip()
         self.base_url = base_url.strip()
         self.model = model.strip()
+        self.debug_info = []  # 添加调试信息列表
 
-    def _responses_url(self) -> str:
-        """Resolve Ark/OpenAI-compatible responses endpoint URL."""
+    def _is_volcengine_ark(self) -> bool:
+        """判断是否为火山引擎 Ark 格式"""
+        return "/api/v3" in self.base_url or "volces.com" in self.base_url
+
+    def _chat_completions_url(self) -> str:
+        """Resolve OpenAI-compatible chat completions endpoint URL."""
         base = self.base_url.rstrip("/")
-        if base.endswith("/responses"):
-            return base
-        if base.endswith("/v1") or base.endswith("/api/v3"):
-            return f"{base}/responses"
-        return f"{base}/responses"
+        # 如果已经是 v1 结尾，拼接 /chat/completions
+        if base.endswith("/v1"):
+            return f"{base}/chat/completions"
+        # 如果是域名格式（如 DeepSeek），自动添加 /v1/chat/completions
+        return f"{base}/v1/chat/completions"
+
+    def _extract_text_from_chat(self, data: Dict) -> str:
+        """Parse output text from Chat Completions API result (OpenAI format)."""
+        try:
+            choices = data.get("choices", [])
+            if not choices:
+                return ""
+            message = choices[0].get("message", {})
+            content = message.get("content", "")
+            return str(content).strip()
+        except Exception:
+            return ""
 
     def _extract_text_from_responses(self, data: Dict) -> str:
-        """Parse output text from Responses API result."""
+        """Parse output text from Responses API result (Volcengine Ark format)."""
         if isinstance(data.get("output_text"), str) and data.get("output_text"):
             return data["output_text"].strip()
 
@@ -44,33 +62,77 @@ class DomesticLLM:
 
     def _call_llm_text(self, prompt: str, temperature: float = 0.2, system_prompt: str = "") -> str:
         """
-        Call model using Responses API.
-        Works with Volcengine Ark endpoint by default.
+        Call LLM API with automatic format detection.
+        Supports both OpenAI Chat Completions and Volcengine Ark formats.
         """
         if not (self.api_key and self.base_url and self.model):
+            self.debug_info.append("❌ API 配置不完整")
             return ""
 
-        url = self._responses_url()
         headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
-        input_payload = []
-        if system_prompt.strip():
-            input_payload.append(
-                {
-                    "role": "system",
-                    "content": [{"type": "input_text", "text": system_prompt.strip()}],
-                }
-            )
-        input_payload.append({"role": "user", "content": [{"type": "input_text", "text": prompt}]})
-        payload = {"model": self.model, "input": input_payload, "temperature": temperature}
+        
+        # 根据服务商选择正确的请求格式
+        if self._is_volcengine_ark():
+            # 火山引擎 Ark 格式
+            url = self._responses_url()
+            input_payload = []
+            if system_prompt.strip():
+                input_payload.append(
+                    {
+                        "role": "system",
+                        "content": [{"type": "input_text", "text": system_prompt.strip()}],
+                    }
+                )
+            input_payload.append({"role": "user", "content": [{"type": "input_text", "text": prompt}]})
+            payload = {"model": self.model, "input": input_payload, "temperature": temperature}
+            self.debug_info.append(f"🔗 使用火山引擎 Ark 格式：{url}")
+        else:
+            # OpenAI 标准格式（DeepSeek、SiliconFlow 等）
+            url = self._chat_completions_url()
+            messages = []
+            if system_prompt.strip():
+                messages.append({"role": "system", "content": system_prompt.strip()})
+            messages.append({"role": "user", "content": prompt})
+            payload = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": temperature,
+            }
+            self.debug_info.append(f"🔗 使用 OpenAI 标准格式：{url}")
+        
+        self.debug_info.append(f"📤 发送请求，模型：{self.model}")
 
         try:
             resp = requests.post(url, headers=headers, json=payload, timeout=60)
+            self.debug_info.append(f"📥 响应状态码：{resp.status_code}")
+            
             if resp.status_code >= 300:
+                self.debug_info.append(f"❌ HTTP 错误：{resp.status_code} - {resp.text[:300]}")
                 return ""
+            
             data = resp.json()
-            return self._extract_text_from_responses(data)
-        except Exception:
+            self.debug_info.append(f"✅ 响应数据：{json.dumps(data, ensure_ascii=False)[:500]}...")
+            
+            # 根据格式选择正确的文本提取方法
+            if self._is_volcengine_ark():
+                text = self._extract_text_from_responses(data)
+            else:
+                text = self._extract_text_from_chat(data)
+            
+            self.debug_info.append(f"📝 提取文本长度：{len(text)}")
+            return text
+        except Exception as e:
+            self.debug_info.append(f"❌ 异常：{str(e)}")
             return ""
+
+    def _responses_url(self) -> str:
+        """Resolve Ark/OpenAI-compatible responses endpoint URL (for Volcengine)."""
+        base = self.base_url.rstrip("/")
+        if base.endswith("/responses"):
+            return base
+        if base.endswith("/api/v3"):
+            return f"{base}/responses"
+        return f"{base}/api/v3/responses"
 
     def _extract_json(self, raw: str, object_mode: bool = True):
         if not raw:
@@ -101,10 +163,12 @@ class DomesticLLM:
         self, items: List[Dict], keyword: str, summary_len: int = 500, top_k_tags: int = 10
     ) -> Dict[str, object]:
         """
-        第一阶段：LLM对检索结果做预分析，输出
+        第一阶段：LLM 对检索结果做预分析，输出
         1) 总结摘要
         2) 推荐兴趣标签（供用户二次选择）
         """
+        self.debug_info = []  # 重置调试信息
+        
         if not items:
             return {"overview": "暂无可用信息。", "recommended_tags": []}
 
@@ -117,33 +181,53 @@ class DomesticLLM:
 
         if self.api_key and self.base_url and self.model:
             try:
+                self.debug_info.append("🚀 开始 LLM 预分析...")
+                
+                system_prompt = (
+                    "你是一个专业的信息分析助手，负责整理和总结用户提供的资讯内容。"
+                    "你的任务是客观、中立地提取关键信息，不涉及任何敏感评价。"
+                    "请严格按照用户要求的 JSON 格式输出，不要添加额外解释。"
+                )
+                
                 prompt = (
-                    f"请分析用户搜索词“{keyword}”对应的信息集合，并输出 JSON。\n"
-                    "JSON字段:\n"
-                    "- overview: 对结果的高质量中文总结（覆盖核心观点，简洁清楚）\n"
-                    f"- tags: 最多{top_k_tags}个可用于二次筛选的兴趣标签（2-8字短语，避免“信息/新闻/相关”这类泛词）\n"
-                    "仅输出JSON对象，不要任何解释。\n\n"
+                    f'请分析以下围绕"{keyword}"的信息集合，并输出 JSON 格式结果。\n\n'
+                    "JSON 字段说明:\n"
+                    '- overview: 对结果的高质量中文总结（覆盖核心观点，简洁清楚，不超过 300 字）\n'
+                    f'- tags: 最多{top_k_tags}个可用于二次筛选的兴趣标签（2-8 字短语，避免"信息/新闻/相关"这类泛词）\n\n'
+                    "仅输出 JSON 对象，不要任何解释。\n\n"
                     f"候选信息:\n{refs}"
                 )
-                raw = self._call_llm_text(prompt, temperature=0.2)
+                self.debug_info.append(f"📝 Prompt 长度：{len(prompt)} 字符")
+                
+                raw = self._call_llm_text(prompt, temperature=0.2, system_prompt=system_prompt)
+                self.debug_info.append(f"📄 LLM 原始返回：{raw[:500] if raw else '无返回'}...")
+                
                 data = self._extract_json(raw, object_mode=True) or {}
+                self.debug_info.append(f"🔍 解析后的 JSON: {json.dumps(data, ensure_ascii=False)[:300]}...")
+                
                 overview = str(data.get("overview", "")).strip()
                 tags = data.get("tags", [])
                 tags = [str(x).strip() for x in tags if str(x).strip()]
                 tags = self._clean_tags(tags, keyword)[:top_k_tags]
+                
                 if overview or tags:
+                    self.debug_info.append(f"✅ LLM 分析成功 - 摘要长度：{len(overview)}, 标签数：{len(tags)}")
                     return {
                         "overview": (overview or "已完成预分析。")[:summary_len],
                         "recommended_tags": tags[:top_k_tags],
                     }
-            except Exception:
+                else:
+                    self.debug_info.append("⚠️ LLM 返回数据为空")
+            except Exception as e:
+                self.debug_info.append(f"❌ LLM 调用异常：{str(e)}")
                 pass
 
         # 本地回退：关键词提取 + 拼接总结
+        self.debug_info.append("🔄 使用本地回退算法")
         tags = self.extract_focus_keywords(items, keyword, top_k=top_k_tags)
         head_titles = "；".join([x.get("title", "") for x in items[:6]])
         overview = (
-            f"围绕“{keyword}”共检索到{len(items)}条信息。"
+            f"围绕'{keyword}'共检索到{len(items)}条信息。"
             f"主要主题包括：{head_titles}。"
             "建议先从推荐标签中选择方向，再查看二次精准结果。"
         )
